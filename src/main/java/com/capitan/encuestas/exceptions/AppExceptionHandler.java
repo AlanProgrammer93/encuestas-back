@@ -4,6 +4,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.capitan.encuestas.models.responses.ErrorMessage;
 import com.capitan.encuestas.models.responses.ValidationErrors;
 
 import org.springframework.http.HttpHeaders;
@@ -33,5 +34,11 @@ public class AppExceptionHandler {
             ValidationErrors validationErrors = new ValidationErrors(errors, new Date());
 
             return new ResponseEntity<>(validationErrors, new HttpHeaders(), HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(value = { Exception.class })
+    public ResponseEntity<Object> handleException(Exception ex, WebRequest webRequest) {
+        ErrorMessage errorMessage = new ErrorMessage(new Date(), ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.value());
+        return new ResponseEntity<>(errorMessage, new HttpHeaders(), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }
