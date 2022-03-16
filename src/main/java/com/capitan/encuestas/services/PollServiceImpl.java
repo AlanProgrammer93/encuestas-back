@@ -11,6 +11,9 @@ import com.capitan.encuestas.repositories.PollRepository;
 import com.capitan.encuestas.repositories.UserRepository;
 
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -62,6 +65,46 @@ public class PollServiceImpl implements PollService {
         }
 
         return poll;
+    }
+
+    @Override
+    public Page<PollEntity> getPolls(int page, int limit, String email) {
+        UserEntity user = userRepository.findByEmail(email);
+
+        Pageable pageable = PageRequest.of(page, limit);
+
+        Page<PollEntity> paginatedPolls = this.pollRepository.findAllByUserId(user.getId(), pageable);
+
+        return paginatedPolls;
+    }
+
+    @Override
+    public void togglePollOpened(String pollId, String email) {
+        UserEntity user = userRepository.findByEmail(email);
+        
+        PollEntity poll = pollRepository.findByPollIdAndUserId(pollId, user.getId());
+
+        if (poll == null) {
+            throw new RuntimeException("Poll not found");
+        }
+
+        poll.setOpened(!poll.isOpened());
+
+        pollRepository.save(poll);
+    }
+
+    @Override
+    public void deletePoll(String pollId, String email) {
+        UserEntity user = userRepository.findByEmail(email);
+        
+        PollEntity poll = pollRepository.findByPollIdAndUserId(pollId, user.getId());
+
+        if (poll == null) {
+            throw new RuntimeException("Poll not found");
+        }
+
+        pollRepository.delete(poll);
+        
     }
     
 }
