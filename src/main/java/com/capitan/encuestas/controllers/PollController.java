@@ -1,15 +1,22 @@
 package com.capitan.encuestas.controllers;
 
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
+import javax.swing.text.AbstractDocument.Content;
 import javax.validation.Valid;
 
 import com.capitan.encuestas.entities.PollEntity;
+import com.capitan.encuestas.interfaces.PollResult;
 import com.capitan.encuestas.models.requests.PollCreationRequestModel;
 import com.capitan.encuestas.models.responses.CreatedPollRest;
 import com.capitan.encuestas.models.responses.PaginatedPollRest;
 import com.capitan.encuestas.models.responses.PollRest;
+import com.capitan.encuestas.models.responses.PollResultRest;
+import com.capitan.encuestas.models.responses.PollResultWrapperRest;
 import com.capitan.encuestas.services.PollService;
+import com.capitan.encuestas.utils.transformer.PollResultTransformer;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -80,5 +87,16 @@ public class PollController {
     @DeleteMapping(path = "/{id}")
     public void togglePoll(@PathVariable String id, Authentication authentication) {
         pollService.deletePoll(id, authentication.getPrincipal().toString());
+    }
+
+    @GetMapping(path = "/{id}/results")
+    public PollResultWrapperRest getResults(@PathVariable String id, Authentication authentication) {
+        List<PollResult> results = pollService.getResults(id, authentication.getPrincipal().toString());
+        
+        PollEntity poll = pollService.getPoll(id);
+
+        PollResultTransformer transformer = new PollResultTransformer();
+
+        return new PollResultWrapperRest(transformer.transformData(results), poll.getContent(), poll.getId());
     }
 }

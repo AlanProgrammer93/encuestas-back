@@ -1,11 +1,13 @@
 package com.capitan.encuestas.services;
 
+import java.util.List;
 import java.util.UUID;
 
 import com.capitan.encuestas.entities.AnswerEntity;
 import com.capitan.encuestas.entities.PollEntity;
 import com.capitan.encuestas.entities.QuestionEntity;
 import com.capitan.encuestas.entities.UserEntity;
+import com.capitan.encuestas.interfaces.PollResult;
 import com.capitan.encuestas.models.requests.PollCreationRequestModel;
 import com.capitan.encuestas.repositories.PollRepository;
 import com.capitan.encuestas.repositories.UserRepository;
@@ -105,6 +107,18 @@ public class PollServiceImpl implements PollService {
 
         pollRepository.delete(poll);
         
+    }
+
+    @Override
+    public List<PollResult> getResults(String pollId, String email) {
+        UserEntity user = userRepository.findByEmail(email);
+        
+        PollEntity poll = pollRepository.findByPollIdAndUserId(pollId, user.getId());
+
+        if (poll == null) {
+            throw new RuntimeException("Poll not found");
+        }
+        return pollRepository.getPollResults(poll.getId());
     }
     
 }
